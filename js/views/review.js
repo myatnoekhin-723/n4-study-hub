@@ -2,7 +2,7 @@
 // Opening #review?cat=Verbs starts a round for that category.
 
 import { listCategories, reviewPool, shuffle, STATUS_LABELS } from '../logic.js';
-import { byId, fillSelect } from './dom.js';
+import { byId, fillSelect, setIconButton } from './dom.js';
 
 export function createReviewView(app) {
   const categorySelect = byId('review-category');
@@ -102,7 +102,11 @@ export function createReviewView(app) {
     progress.textContent = `Card ${index + 1} of ${deck.length}`;
     statusText.textContent = `Status: ${STATUS_LABELS[card.status]}`;
     prevButton.disabled = index === 0;
-    nextButton.textContent = index === deck.length - 1 ? 'Finish' : 'Next';
+    if (index === deck.length - 1) {
+      setIconButton(nextButton, 'check', 'Finish');
+    } else {
+      setIconButton(nextButton, 'next', 'Next card');
+    }
   }
 
   function goNext() {

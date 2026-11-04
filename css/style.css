@@ -131,6 +131,51 @@ main {
   color: var(--danger);
 }
 
+.button-danger:hover {
+  background: #fdecea;
+  border-color: #f3c1bc;
+}
+
+/* Compact square button holding one icon */
+.button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--accent);
+}
+
+.button-icon:hover {
+  background: var(--accent-soft);
+}
+
+.button-icon.button-danger {
+  color: var(--danger);
+}
+
+/* The sprite only holds <symbol>s. The hidden attribute does not hide an
+   <svg> in every browser, so take it out of the layout instead. */
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Icons draw with the button's text colour */
+.icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
 :focus-visible {
   outline: 3px solid #2f6fde;
   outline-offset: 2px;

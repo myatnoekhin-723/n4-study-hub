@@ -14,6 +14,37 @@ export function el(tag, className = '', text = '', lang = '') {
   return node;
 }
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// An icon from the sprite at the top of index.html, e.g. icon('edit').
+export function icon(name) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('class', 'icon');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  const use = document.createElementNS(SVG_NS, 'use');
+  use.setAttribute('href', `#icon-${name}`);
+  svg.append(use);
+  return svg;
+}
+
+// Swaps the icon and label of an icon button (e.g. Next -> Finish).
+export function setIconButton(button, name, label) {
+  button.querySelector('use').setAttribute('href', `#icon-${name}`);
+  button.setAttribute('aria-label', label);
+  button.title = label;
+}
+
+// A compact icon-only button. label is read by screen readers and shown as a tooltip.
+export function iconButton(name, label, className = '') {
+  const button = el('button', `button button-icon ${className}`.trim());
+  button.type = 'button';
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  button.append(icon(name));
+  return button;
+}
+
 // Fills a <select> with options, keeping the current choice if it still exists.
 // options: [{ value, label }]
 export function fillSelect(select, options, preferredValue = select.value) {

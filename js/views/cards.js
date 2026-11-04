@@ -9,7 +9,7 @@ import {
   CARDS_PER_PAGE,
   STATUS_LABELS,
 } from '../logic.js';
-import { byId, el, fillSelect, showFieldErrors } from './dom.js';
+import { byId, el, fillSelect, iconButton, showFieldErrors } from './dom.js';
 
 const FIELDS = ['japanese', 'reading', 'meaning', 'category'];
 
@@ -142,12 +142,10 @@ export function createCardsView(app) {
     list.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function actionButton(label, action, card, className) {
-    const button = el('button', className, label);
-    button.type = 'button';
+  function actionButton(iconName, label, action, card, className = '') {
+    const button = iconButton(iconName, `${label} ${card.japanese}`, className);
     button.dataset.action = action;
     button.dataset.id = card.id;
-    button.setAttribute('aria-label', `${label} ${card.japanese}`);
     return button;
   }
 
@@ -169,8 +167,8 @@ export function createCardsView(app) {
 
     const actions = el('div', 'card-item-actions');
     actions.append(
-      actionButton('Edit', 'edit', card, 'button'),
-      actionButton('Delete', 'delete', card, 'button button-danger')
+      actionButton('edit', 'Edit', 'edit', card),
+      actionButton('trash', 'Delete', 'delete', card, 'button-danger')
     );
 
     item.append(text, meta, actions);
