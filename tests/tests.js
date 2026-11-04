@@ -9,6 +9,7 @@ import {
   validateSession,
 } from '../js/validation.js';
 import { createStore, emptyData, DATA_KEY, BACKUP_PREFIX } from '../js/store.js';
+import { createCard, listCategories } from '../js/logic.js';
 
 const tests = [];
 
@@ -272,4 +273,19 @@ test('store.load works when storage is blocked', () => {
   const result = createStore(backend).load();
   assert(result.warning, 'no warning');
   assertEqual(result.data, emptyData());
+});
+
+// ---------- logic: cards ----------
+
+test('createCard starts as "new" with matching timestamps', () => {
+  const card = createCard(validCard, 'id1', '2026-11-05T10:00:00.000Z');
+  assertEqual(card.status, 'new');
+  assertEqual(card.id, 'id1');
+  assertEqual(card.createdAt, card.updatedAt);
+  assertEqual(card.japanese, '勉強');
+});
+
+test('listCategories returns each category once, sorted', () => {
+  const cards = [{ category: 'Verbs' }, { category: 'Adjectives' }, { category: 'Verbs' }];
+  assertEqual(listCategories(cards), ['Adjectives', 'Verbs']);
 });

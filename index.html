@@ -18,12 +18,57 @@
   </header>
 
   <!-- Warnings such as "saved data was corrupted" appear here -->
-  <div id="banner" class="banner" role="alert" hidden></div>
+  <div id="banner" class="banner" role="alert" hidden>
+    <span id="banner-text"></span>
+    <button type="button" id="banner-close" class="button">Dismiss</button>
+  </div>
 
   <main>
     <section id="view-cards" data-view="cards" hidden>
       <h2>Flashcards</h2>
-      <p class="placeholder">Card list and form coming on Day 3.</p>
+
+      <form id="card-form" class="form" novalidate>
+        <h3 id="card-form-title">Add a card</h3>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="card-japanese">Japanese</label>
+            <input id="card-japanese" name="japanese" lang="ja" autocomplete="off"
+                   placeholder="勉強" aria-describedby="card-japanese-error">
+            <p id="card-japanese-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="card-reading">Reading (kana)</label>
+            <input id="card-reading" name="reading" lang="ja" autocomplete="off"
+                   placeholder="べんきょう" aria-describedby="card-reading-error">
+            <p id="card-reading-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="card-meaning">Meaning</label>
+            <input id="card-meaning" name="meaning" autocomplete="off"
+                   placeholder="study" aria-describedby="card-meaning-error">
+            <p id="card-meaning-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="card-category">Category</label>
+            <input id="card-category" name="category" list="category-options" autocomplete="off"
+                   placeholder="Nouns" aria-describedby="card-category-error">
+            <datalist id="category-options"></datalist>
+            <p id="card-category-error" class="error"></p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="card-submit" class="button button-primary">Add card</button>
+          <p id="card-form-status" class="form-status" role="status"></p>
+        </div>
+      </form>
+
+      <ul id="card-list" class="card-list"></ul>
+      <p id="card-empty" class="empty" hidden></p>
     </section>
 
     <section id="view-review" data-view="review" hidden>

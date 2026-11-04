@@ -1,13 +1,60 @@
 // Entry point. This is the ONLY module with side effects on import.
 // tests.html must never import this file.
 
+import { createStore } from './store.js';
+import { createCardsView } from './views/cards.js';
+
 const VIEWS = ['cards', 'review', 'timetable', 'dashboard'];
 const DEFAULT_VIEW = 'cards';
 
-// Each view can register { enter(params), leave() }.
+// ---------- Banner ----------
+
+const banner = document.getElementById('banner');
+const bannerText = document.getElementById('banner-text');
+
+function showBanner(message) {
+  bannerText.textContent = message;
+  banner.hidden = false;
+}
+
+document.getElementById('banner-close').addEventListener('click', () => {
+  banner.hidden = true;
+});
+
+// ---------- Data ----------
+
+// Even reading window.localStorage can throw when the browser blocks storage.
+// store.load() handles a broken backend, so null is fine here.
+let backend = null;
+try {
+  backend = window.localStorage;
+} catch {
+  backend = null;
+}
+
+const store = createStore(backend);
+const loaded = store.load();
+if (loaded.warning) showBanner(loaded.warning);
+
+// Shared by every view. Views change app.data, then call app.save().
+const app = {
+  data: loaded.data,
+  save() {
+    const result = store.save(app.data);
+    if (!result.ok) showBanner(result.error);
+    return result.ok;
+  },
+  showBanner,
+};
+
+// ---------- Router ----------
+
+// Each view registers { enter(params), leave() }.
 // enter() runs when the view is shown, leave() when the user navigates away
-// (e.g. to throw away an unfinished quiz). Filled in on later days.
-const viewHandlers = {};
+// (e.g. to throw away an unfinished quiz).
+const viewHandlers = {
+  cards: createCardsView(app),
+};
 
 let currentView = null;
 

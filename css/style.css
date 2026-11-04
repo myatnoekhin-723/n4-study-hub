@@ -74,12 +74,190 @@ main {
 
 /* ---------- Banner ---------- */
 .banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   max-width: 1000px;
   margin: 12px auto 0;
   padding: 10px 16px;
   background: var(--warn-bg);
   color: var(--warn-text);
   border-radius: var(--radius);
+}
+
+.banner[hidden] {
+  display: none;
+}
+
+/* ---------- Buttons ---------- */
+.button {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--bg);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.button-primary:hover {
+  background: #a93226;
+}
+
+.button-danger {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 3px solid #2f6fde;
+  outline-offset: 2px;
+}
+
+/* ---------- Forms ---------- */
+.form {
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.form h3 {
+  margin-top: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 4px 16px;
+}
+
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.field input,
+.field select,
+.toolbar input,
+.toolbar select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  background: var(--surface);
+}
+
+.field input[aria-invalid="true"] {
+  border-color: var(--accent);
+}
+
+.error {
+  min-height: 1.5em;
+  margin: 2px 0 0;
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.form-status {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ---------- Card list ---------- */
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-item-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  flex: 1 1 260px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.card-japanese {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.card-reading {
+  color: var(--muted);
+}
+
+.card-item-meta,
+.card-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.tag,
+.status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.status-new {
+  background: #e8f0fe;
+  border-color: #c5d6f8;
+}
+
+.status-learning {
+  background: #fff4d6;
+  border-color: #f0dca0;
+}
+
+.status-known {
+  background: #e3f4e8;
+  border-color: #b6e0c2;
+}
+
+.empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 16px;
 }
 
 /* ---------- Views ---------- */
