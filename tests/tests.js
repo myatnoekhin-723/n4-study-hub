@@ -9,7 +9,8 @@ import {
   validateSession,
 } from '../js/validation.js';
 import { createStore, emptyData, DATA_KEY, BACKUP_PREFIX } from '../js/store.js';
-import { createCard, listCategories } from '../js/logic.js';
+import { createCard, listCategories, filterCards } from '../js/logic.js';
+import { SEED_CARDS } from '../js/seed.js';
 
 const tests = [];
 
@@ -288,4 +289,53 @@ test('createCard starts as "new" with matching timestamps', () => {
 test('listCategories returns each category once, sorted', () => {
   const cards = [{ category: 'Verbs' }, { category: 'Adjectives' }, { category: 'Verbs' }];
   assertEqual(listCategories(cards), ['Adjectives', 'Verbs']);
+});
+
+// ---------- logic: filterCards ----------
+
+const filterSample = [
+  { japanese: '勉強', reading: 'べんきょう', meaning: 'Study', category: 'Nouns' },
+  { japanese: '運ぶ', reading: 'はこぶ', meaning: 'to carry', category: 'Verbs' },
+  { japanese: '調べる', reading: 'しらべる', meaning: 'to look up', category: 'Verbs' },
+];
+
+test('filterCards with no filters returns everything', () => {
+  assertEqual(filterCards(filterSample).length, 3);
+});
+
+test('filterCards by category', () => {
+  assertEqual(filterCards(filterSample, { category: 'Verbs' }).length, 2);
+});
+
+test('filterCards searches meaning ignoring case', () => {
+  assertEqual(filterCards(filterSample, { search: 'STUDY' }).map((c) => c.japanese), ['勉強']);
+});
+
+test('filterCards searches Japanese and reading', () => {
+  assertEqual(filterCards(filterSample, { search: '運' }).length, 1);
+  assertEqual(filterCards(filterSample, { search: 'しらべ' }).length, 1);
+});
+
+test('filterCards combines category and search', () => {
+  assertEqual(filterCards(filterSample, { category: 'Nouns', search: 'carry' }).length, 0);
+  assertEqual(filterCards(filterSample, { category: 'Verbs', search: 'carry' }).length, 1);
+});
+
+test('filterCards ignores a blank search', () => {
+  assertEqual(filterCards(filterSample, { search: '   ' }).length, 3);
+});
+
+// ---------- seed deck ----------
+
+test('every seed card passes validation and none are duplicates', () => {
+  const accepted = [];
+  SEED_CARDS.forEach((card, index) => {
+    const result = validateCard(card, accepted);
+    assert(result.valid, `seed #${index} ${card.japanese}: ${JSON.stringify(result.errors)}`);
+    accepted.push({ id: String(index), ...result.value });
+  });
+});
+
+test('seed deck has at least 4 different meanings (needed for the quiz)', () => {
+  assert(new Set(SEED_CARDS.map((card) => card.meaning)).size >= 4);
 });

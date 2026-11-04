@@ -189,6 +189,24 @@ main {
   color: var(--muted);
 }
 
+/* ---------- Toolbar (filters) ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+}
+
+.toolbar .field {
+  flex: 1 1 200px;
+}
+
+.count {
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 /* ---------- Card list ---------- */
 .card-list {
   list-style: none;

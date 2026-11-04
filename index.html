@@ -63,9 +63,23 @@
 
         <div class="form-actions">
           <button type="submit" id="card-submit" class="button button-primary">Add card</button>
+          <button type="button" id="card-cancel" class="button" hidden>Cancel</button>
           <p id="card-form-status" class="form-status" role="status"></p>
         </div>
       </form>
+
+      <div class="toolbar">
+        <div class="field">
+          <label for="card-filter-category">Category</label>
+          <select id="card-filter-category"></select>
+        </div>
+        <div class="field">
+          <label for="card-search">Search</label>
+          <input id="card-search" type="search" autocomplete="off" placeholder="Japanese, reading or meaning">
+        </div>
+        <button type="button" id="card-clear-filters" class="button">Clear</button>
+      </div>
+      <p id="card-count" class="count" aria-live="polite"></p>
 
       <ul id="card-list" class="card-list"></ul>
       <p id="card-empty" class="empty" hidden></p>

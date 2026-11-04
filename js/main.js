@@ -1,7 +1,9 @@
 // Entry point. This is the ONLY module with side effects on import.
 // tests.html must never import this file.
 
-import { createStore } from './store.js';
+import { createStore, emptyData } from './store.js';
+import { createCard } from './logic.js';
+import { SEED_CARDS } from './seed.js';
 import { createCardsView } from './views/cards.js';
 
 const VIEWS = ['cards', 'review', 'timetable', 'dashboard'];
@@ -32,7 +34,16 @@ try {
   backend = null;
 }
 
-const store = createStore(backend);
+// Used only on the very first visit (when there is no saved data at all).
+function createSeedData() {
+  const now = new Date().toISOString();
+  return {
+    ...emptyData(),
+    cards: SEED_CARDS.map((card) => createCard(card, crypto.randomUUID(), now)),
+  };
+}
+
+const store = createStore(backend, { seed: createSeedData });
 const loaded = store.load();
 if (loaded.warning) showBanner(loaded.warning);
 
