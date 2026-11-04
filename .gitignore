@@ -1,0 +1,16 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+.idea/
+
+# Logs / temp
+*.log
+*.tmp
+
+# Exported study data (may contain your own notes)
+n4-study-hub-export*.json
