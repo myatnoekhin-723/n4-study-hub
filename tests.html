@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N4 Study Hub Tests</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    #summary {
+      font-weight: bold;
+    }
+    .pass {
+      color: #1b7a3a;
+    }
+    .fail {
+      color: #b3261e;
+    }
+    #results li {
+      margin: 4px 0;
+    }
+    .error {
+      display: block;
+      margin-left: 1.5em;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>N4 Study Hub Tests</h1>
+  <p id="summary">Running…</p>
+  <ul id="results"></ul>
+
+  <script type="module">
+    import { runAll } from './tests/tests.js';
+
+    const results = runAll();
+    const failed = results.filter((result) => !result.passed);
+    const list = document.getElementById('results');
+
+    // Failures first, so they are easy to spot
+    [...failed, ...results.filter((result) => result.passed)].forEach((result) => {
+      const item = document.createElement('li');
+      item.className = result.passed ? 'pass' : 'fail';
+      item.textContent = (result.passed ? '✔ ' : '✘ ') + result.name;
+      if (!result.passed) {
+        const error = document.createElement('span');
+        error.className = 'error';
+        error.textContent = result.error;
+        item.append(error);
+      }
+      list.append(item);
+    });
+
+    const summary = document.getElementById('summary');
+    summary.textContent = `${results.length - failed.length} / ${results.length} passed`;
+    summary.className = failed.length ? 'fail' : 'pass';
+    document.title = (failed.length ? '✘ ' : '✔ ') + document.title;
+  </script>
+</body>
+</html>
