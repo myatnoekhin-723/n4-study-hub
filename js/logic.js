@@ -30,3 +30,21 @@ export function filterCards(cards, { category = '', search = '' } = {}) {
     );
   });
 }
+
+// Cards for a review round. Known cards are skipped unless includeKnown is true.
+export function reviewPool(cards, { category = '', includeKnown = false } = {}) {
+  return cards.filter(
+    (card) =>
+      (!category || card.category === category) && (includeKnown || card.status !== 'known')
+  );
+}
+
+// Returns a shuffled copy (Fisher–Yates). random can be replaced in tests.
+export function shuffle(items, random = Math.random) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}

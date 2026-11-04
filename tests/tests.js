@@ -9,7 +9,7 @@ import {
   validateSession,
 } from '../js/validation.js';
 import { createStore, emptyData, DATA_KEY, BACKUP_PREFIX } from '../js/store.js';
-import { createCard, listCategories, filterCards } from '../js/logic.js';
+import { createCard, listCategories, filterCards, reviewPool, shuffle } from '../js/logic.js';
 import { SEED_CARDS } from '../js/seed.js';
 
 const tests = [];
@@ -338,4 +338,37 @@ test('every seed card passes validation and none are duplicates', () => {
 
 test('seed deck has at least 4 different meanings (needed for the quiz)', () => {
   assert(new Set(SEED_CARDS.map((card) => card.meaning)).size >= 4);
+});
+
+// ---------- logic: review ----------
+
+const reviewSample = [
+  { id: '1', category: 'Verbs', status: 'new' },
+  { id: '2', category: 'Verbs', status: 'known' },
+  { id: '3', category: 'Nouns', status: 'learning' },
+];
+
+test('reviewPool skips known cards by default', () => {
+  assertEqual(reviewPool(reviewSample).map((c) => c.id), ['1', '3']);
+});
+
+test('reviewPool includes known cards when asked', () => {
+  assertEqual(reviewPool(reviewSample, { includeKnown: true }).length, 3);
+});
+
+test('reviewPool filters by category', () => {
+  assertEqual(reviewPool(reviewSample, { category: 'Verbs' }).map((c) => c.id), ['1']);
+  assertEqual(reviewPool(reviewSample, { category: 'Missing' }).length, 0);
+});
+
+test('shuffle keeps every item and does not change the original', () => {
+  const items = [1, 2, 3, 4, 5];
+  const shuffled = shuffle(items);
+  assertEqual([...shuffled].sort(), [1, 2, 3, 4, 5]);
+  assertEqual(items, [1, 2, 3, 4, 5]);
+});
+
+test('shuffle uses the random function it is given', () => {
+  // random() always 0 -> every swap is with index 0
+  assertEqual(shuffle([1, 2, 3], () => 0), [2, 3, 1]);
 });

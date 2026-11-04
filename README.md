@@ -22,13 +22,21 @@ To run the automated tests, open `tests.html` the same way.
 ## Project structure
 
 ```
-index.html        the app (4 views, switched by the URL hash)
-tests.html        automated tests for the logic
+index.html            the app (4 views, switched by the URL hash)
+tests.html            runs the automated tests in the browser
 css/style.css
-js/main.js        entry point and router
+js/main.js            entry point: loads data, router (#view?query)
+js/store.js           load/save under one localStorage key, backup on corrupt data
+js/validation.js      pure validation rules (cards, sessions)
+js/logic.js           pure logic (filtering, review pool, shuffle)
+js/seed.js            starter N4 deck (30 cards)
+js/views/dom.js       small DOM helpers
+js/views/cards.js     Flashcards view
+js/views/review.js    Review view
+tests/tests.js        tiny test harness + tests
 ```
 
-More files are added as features land. See the plan for the full layout.
+`validation.js`, `logic.js` and `store.js` never touch the page, so they can be tested directly. `main.js` is the only file that runs code when it loads; the tests never import it.
 
 ## Data
 
@@ -36,4 +44,4 @@ Everything is saved under one localStorage key, `n4hub.data`. If that data is ev
 
 ## Status
 
-Work in progress (Day 1 of 10).
+Work in progress (Day 5 of 10). Done: flashcards (add, edit, delete, filter, search, starter deck) and flip-card review. Next: quiz, timetable, dashboard.

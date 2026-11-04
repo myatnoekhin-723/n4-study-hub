@@ -5,6 +5,7 @@ import { createStore, emptyData } from './store.js';
 import { createCard } from './logic.js';
 import { SEED_CARDS } from './seed.js';
 import { createCardsView } from './views/cards.js';
+import { createReviewView } from './views/review.js';
 
 const VIEWS = ['cards', 'review', 'timetable', 'dashboard'];
 const DEFAULT_VIEW = 'cards';
@@ -65,6 +66,7 @@ const app = {
 // (e.g. to throw away an unfinished quiz).
 const viewHandlers = {
   cards: createCardsView(app),
+  review: createReviewView(app),
 };
 
 let currentView = null;

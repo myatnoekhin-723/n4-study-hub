@@ -156,7 +156,7 @@ main {
 
 .field input,
 .field select,
-.toolbar input,
+.toolbar input:not([type="checkbox"]),
 .toolbar select {
   width: 100%;
   padding: 6px 8px;
@@ -270,6 +270,107 @@ main {
 .status-known {
   background: #e3f4e8;
   border-color: #b6e0c2;
+}
+
+/* ---------- Review ---------- */
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.review-area,
+.review-done {
+  text-align: center;
+}
+
+.hint {
+  margin: 4px 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* The card is a <button> so it works with the keyboard for free */
+.flashcard {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: 240px;
+  margin: 8px auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  perspective: 1000px;
+}
+
+.flashcard-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s;
+  transform-style: preserve-3d;
+}
+
+.flashcard.is-flipped .flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard.no-animation .flashcard-inner {
+  transition: none;
+}
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  backface-visibility: hidden;
+  overflow-wrap: anywhere;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+  background: var(--accent-soft);
+}
+
+.flashcard-japanese {
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.flashcard-reading {
+  font-size: 1.5rem;
+}
+
+.flashcard-meaning {
+  font-size: 1.2rem;
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flashcard-inner {
+    transition: none;
+  }
 }
 
 .empty {

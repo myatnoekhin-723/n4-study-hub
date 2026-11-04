@@ -87,7 +87,50 @@
 
     <section id="view-review" data-view="review" hidden>
       <h2>Review / Quiz</h2>
-      <p class="placeholder">Flip review and quiz coming on Days 5–6.</p>
+
+      <div class="toolbar">
+        <div class="field">
+          <label for="review-category">Category</label>
+          <select id="review-category"></select>
+        </div>
+        <label class="checkbox">
+          <input type="checkbox" id="review-include-known"> Include known cards
+        </label>
+      </div>
+
+      <div id="review-area" class="review-area" hidden>
+        <p id="review-progress" class="count"></p>
+
+        <button type="button" id="flashcard" class="flashcard" aria-pressed="false"
+                aria-describedby="flashcard-hint">
+          <span class="flashcard-inner">
+            <span id="flashcard-front" class="flashcard-face flashcard-front">
+              <span id="flashcard-japanese" class="flashcard-japanese" lang="ja"></span>
+            </span>
+            <span id="flashcard-back" class="flashcard-face flashcard-back" aria-hidden="true">
+              <span id="flashcard-reading" class="flashcard-reading" lang="ja"></span>
+              <span id="flashcard-meaning" class="flashcard-meaning"></span>
+            </span>
+          </span>
+        </button>
+        <p id="flashcard-hint" class="hint">Click the card, or press Space or Enter, to flip it.</p>
+        <p id="review-status" class="hint"></p>
+
+        <div class="review-actions">
+          <button type="button" id="review-prev" class="button">Previous</button>
+          <button type="button" id="review-learning" class="button">Still learning</button>
+          <button type="button" id="review-known" class="button button-primary">Known</button>
+          <button type="button" id="review-next" class="button">Next</button>
+        </div>
+      </div>
+
+      <p id="review-empty" class="empty" hidden></p>
+
+      <div id="review-done" class="review-done" hidden>
+        <h3>Done!</h3>
+        <p id="review-summary"></p>
+        <button type="button" id="review-restart" class="button button-primary">Review again</button>
+      </div>
     </section>
 
     <section id="view-timetable" data-view="timetable" hidden>
