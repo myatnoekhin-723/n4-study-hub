@@ -48,3 +48,14 @@ export function shuffle(items, random = Math.random) {
   }
   return copy;
 }
+
+export const CARDS_PER_PAGE = 15;
+
+// Returns one page of items. An out-of-range page is moved into range,
+// e.g. after deleting the last card on the last page.
+export function paginate(items, page, pageSize) {
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const current = Math.min(Math.max(1, Math.floor(page) || 1), totalPages);
+  const start = (current - 1) * pageSize;
+  return { items: items.slice(start, start + pageSize), page: current, totalPages, start };
+}

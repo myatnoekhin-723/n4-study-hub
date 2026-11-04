@@ -9,7 +9,14 @@ import {
   validateSession,
 } from '../js/validation.js';
 import { createStore, emptyData, DATA_KEY, BACKUP_PREFIX } from '../js/store.js';
-import { createCard, listCategories, filterCards, reviewPool, shuffle } from '../js/logic.js';
+import {
+  createCard,
+  listCategories,
+  filterCards,
+  reviewPool,
+  shuffle,
+  paginate,
+} from '../js/logic.js';
 import { SEED_CARDS } from '../js/seed.js';
 
 const tests = [];
@@ -371,4 +378,35 @@ test('shuffle keeps every item and does not change the original', () => {
 test('shuffle uses the random function it is given', () => {
   // random() always 0 -> every swap is with index 0
   assertEqual(shuffle([1, 2, 3], () => 0), [2, 3, 1]);
+});
+
+// ---------- logic: paginate ----------
+
+const thirtyItems = Array.from({ length: 30 }, (_, i) => i + 1);
+
+test('paginate returns the first 15 items on page 1', () => {
+  const result = paginate(thirtyItems, 1, 15);
+  assertEqual(result.items.length, 15);
+  assertEqual(result.items[0], 1);
+  assertEqual(result.totalPages, 2);
+  assertEqual(result.start, 0);
+});
+
+test('paginate returns a partial last page', () => {
+  const result = paginate(thirtyItems.slice(0, 16), 2, 15);
+  assertEqual(result.items, [16]);
+  assertEqual(result.start, 15);
+});
+
+test('paginate moves an out-of-range page into range', () => {
+  assertEqual(paginate(thirtyItems, 5, 15).page, 2);
+  assertEqual(paginate(thirtyItems, 0, 15).page, 1);
+  assertEqual(paginate(thirtyItems, NaN, 15).page, 1);
+});
+
+test('paginate an empty list gives 1 empty page', () => {
+  const result = paginate([], 3, 15);
+  assertEqual(result.items, []);
+  assertEqual(result.page, 1);
+  assertEqual(result.totalPages, 1);
 });

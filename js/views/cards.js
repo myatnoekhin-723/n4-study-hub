@@ -1,7 +1,14 @@
 // Flashcards view: add, edit, delete, filter and search cards.
 
 import { validateCard } from '../validation.js';
-import { createCard, listCategories, filterCards, STATUS_LABELS } from '../logic.js';
+import {
+  createCard,
+  listCategories,
+  filterCards,
+  paginate,
+  CARDS_PER_PAGE,
+  STATUS_LABELS,
+} from '../logic.js';
 import { byId, el, fillSelect, showFieldErrors } from './dom.js';
 
 const FIELDS = ['japanese', 'reading', 'meaning', 'category'];
@@ -19,9 +26,26 @@ export function createCardsView(app) {
   const count = byId('card-count');
   const list = byId('card-list');
   const emptyMessage = byId('card-empty');
+  const pagination = byId('card-pagination');
+  const pagePrevButton = byId('card-page-prev');
+  const pageNextButton = byId('card-page-next');
+  const pageLabel = byId('card-page-label');
 
   // id of the card in the form, or null when adding a new card
   let editingId = null;
+  let currentPage = 1;
+
+  function currentFilters() {
+    return { category: filterCategory.value, search: searchInput.value };
+  }
+
+  // Show the page that contains this card (e.g. right after adding it).
+  function goToCard(cardId) {
+    const position = filterCards(app.data.cards, currentFilters()).findIndex(
+      (card) => card.id === cardId
+    );
+    if (position >= 0) currentPage = Math.floor(position / CARDS_PER_PAGE) + 1;
+  }
 
   function readForm() {
     return Object.fromEntries(FIELDS.map((field) => [field, form.elements[field].value]));
@@ -68,6 +92,7 @@ export function createCardsView(app) {
       const card = createCard(result.value, crypto.randomUUID(), now);
       app.data.cards.push(card);
       formStatus.textContent = `Added ${card.japanese}.`;
+      goToCard(card.id);
     }
     app.save();
 
@@ -99,10 +124,22 @@ export function createCardsView(app) {
     if (button.dataset.action === 'delete') deleteCard(card);
   }
 
+  // A new filter or search always starts again at page 1
+  function onFiltersChanged() {
+    currentPage = 1;
+    render();
+  }
+
   function clearFilters() {
     filterCategory.value = '';
     searchInput.value = '';
+    onFiltersChanged();
+  }
+
+  function changePage(step) {
+    currentPage += step;
     render();
+    list.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function actionButton(label, action, card, className) {
@@ -156,25 +193,36 @@ export function createCardsView(app) {
     ]);
 
     const allCards = app.data.cards;
-    const shown = filterCards(allCards, {
-      category: filterCategory.value,
-      search: searchInput.value,
-    });
+    const matching = filterCards(allCards, currentFilters());
+    const page = paginate(matching, currentPage, CARDS_PER_PAGE);
+    currentPage = page.page; // may have moved, e.g. after deleting the last card on a page
 
-    list.replaceChildren(...shown.map(renderItem));
-    count.textContent = `Showing ${shown.length} of ${allCards.length} cards`;
+    list.replaceChildren(...page.items.map(renderItem));
 
-    emptyMessage.hidden = shown.length > 0;
+    const filteredNote = matching.length === allCards.length ? '' : ` (${allCards.length} in total)`;
+    count.textContent =
+      matching.length === 0
+        ? `Showing 0 of ${allCards.length} cards`
+        : `Showing ${page.start + 1}–${page.start + page.items.length} of ${matching.length} cards${filteredNote}`;
+
+    emptyMessage.hidden = matching.length > 0;
     emptyMessage.textContent =
       allCards.length === 0 ? 'No cards yet. Add your first card above.' : 'No cards match.';
+
+    pagination.hidden = page.totalPages <= 1;
+    pageLabel.textContent = `Page ${page.page} of ${page.totalPages}`;
+    pagePrevButton.disabled = page.page === 1;
+    pageNextButton.disabled = page.page === page.totalPages;
   }
 
   form.addEventListener('submit', onSubmit);
   cancelButton.addEventListener('click', onCancel);
   list.addEventListener('click', onListClick);
-  filterCategory.addEventListener('change', render);
-  searchInput.addEventListener('input', render);
+  filterCategory.addEventListener('change', onFiltersChanged);
+  searchInput.addEventListener('input', onFiltersChanged);
   clearFiltersButton.addEventListener('click', clearFilters);
+  pagePrevButton.addEventListener('click', () => changePage(-1));
+  pageNextButton.addEventListener('click', () => changePage(1));
 
   return {
     enter: render,

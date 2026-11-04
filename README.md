@@ -28,7 +28,7 @@ css/style.css
 js/main.js            entry point: loads data, router (#view?query)
 js/store.js           load/save under one localStorage key, backup on corrupt data
 js/validation.js      pure validation rules (cards, sessions)
-js/logic.js           pure logic (filtering, review pool, shuffle)
+js/logic.js           pure logic (filtering, pagination, review pool, shuffle)
 js/seed.js            starter N4 deck (30 cards)
 js/views/dom.js       small DOM helpers
 js/views/cards.js     Flashcards view

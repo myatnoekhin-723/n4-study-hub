@@ -1,14 +1,20 @@
 /* ---------- Base ---------- */
+/* Sky blue + mint theme. All text colours pass WCAG AA contrast. */
 :root {
-  --bg: #f7f7fb;
+  --bg: #eef8fa;
   --surface: #ffffff;
-  --text: #1f2330;
-  --muted: #6b7080;
-  --accent: #c0392b;
-  --accent-soft: #fbe9e7;
-  --border: #dfe1e8;
+  --text: #1d2b36;
+  --muted: #56697a;
+  --accent: #1b75a8;        /* sky blue: buttons, active nav */
+  --accent-hover: #155d86;
+  --accent-soft: #e0f2fb;
+  --mint: #3cb58f;
+  --mint-soft: #e2f6ef;
+  --border: #cfe5ea;
+  --danger: #b3261e;        /* errors and Delete stay red */
   --warn-bg: #fff4d6;
   --warn-text: #7a5600;
+  --header-bg: linear-gradient(90deg, #dff1fb 0%, #ddf5ec 100%);
   --radius: 8px;
 }
 
@@ -40,13 +46,14 @@ main {
   justify-content: space-between;
   gap: 8px 16px;
   padding: 12px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--header-bg);
+  border-bottom: 3px solid var(--mint);
 }
 
 .logo {
   margin: 0;
   font-size: 1.25rem;
+  color: var(--accent);
 }
 
 .nav {
@@ -64,7 +71,7 @@ main {
 
 .nav a:hover,
 .nav a:focus-visible {
-  background: var(--accent-soft);
+  background: var(--surface);
 }
 
 .nav a[aria-current="page"] {
@@ -117,11 +124,11 @@ main {
 }
 
 .button-primary:hover {
-  background: #a93226;
+  background: var(--accent-hover);
 }
 
 .button-danger {
-  color: var(--accent);
+  color: var(--danger);
 }
 
 :focus-visible {
@@ -167,13 +174,13 @@ main {
 }
 
 .field input[aria-invalid="true"] {
-  border-color: var(--accent);
+  border-color: var(--danger);
 }
 
 .error {
   min-height: 1.5em;
   margin: 2px 0 0;
-  color: var(--accent);
+  color: var(--danger);
   font-size: 0.875rem;
 }
 
@@ -258,8 +265,8 @@ main {
 }
 
 .status-new {
-  background: #e8f0fe;
-  border-color: #c5d6f8;
+  background: var(--accent-soft);
+  border-color: #b5dcf0;
 }
 
 .status-learning {
@@ -268,8 +275,27 @@ main {
 }
 
 .status-known {
-  background: #e3f4e8;
-  border-color: #b6e0c2;
+  background: var(--mint-soft);
+  border-color: #a8e0cb;
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pagination[hidden] {
+  display: none;
+}
+
+.pagination-label {
+  color: var(--muted);
+  min-width: 7em;
+  text-align: center;
 }
 
 /* ---------- Review ---------- */
@@ -341,9 +367,14 @@ main {
   overflow-wrap: anywhere;
 }
 
+.flashcard-front {
+  border-top: 6px solid var(--accent);
+}
+
 .flashcard-back {
   transform: rotateY(180deg);
-  background: var(--accent-soft);
+  background: var(--mint-soft);
+  border-top: 6px solid var(--mint);
 }
 
 .flashcard-japanese {
