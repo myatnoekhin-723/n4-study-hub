@@ -7,6 +7,7 @@ import {
   toMinutes,
   validateCard,
   validateSession,
+  findConflicts,
 } from '../js/validation.js';
 import { createStore, emptyData, DATA_KEY, BACKUP_PREFIX } from '../js/store.js';
 import {
@@ -528,4 +529,31 @@ test('sortSessions orders by day then start time', () => {
     { id: 'a', day: 0, start: '07:00' },
   ]);
   assertEqual(sorted.map((s) => s.id), ['a', 'b', 'c']);
+});
+
+// ---------- findConflicts ----------
+
+const mondayDrill = { id: 'a', day: 0, start: '19:00', end: '20:00', title: 'Drill' };
+
+test('findConflicts: overlapping times on the same day clash', () => {
+  const clashes = findConflicts([mondayDrill], { day: 0, start: '19:30', end: '20:30' });
+  assertEqual(clashes.map((s) => s.id), ['a']);
+});
+
+test('findConflicts: a session inside another clashes', () => {
+  assertEqual(findConflicts([mondayDrill], { day: 0, start: '19:15', end: '19:45' }).length, 1);
+  assertEqual(findConflicts([mondayDrill], { day: 0, start: '18:00', end: '21:00' }).length, 1);
+});
+
+test('findConflicts: back-to-back sessions do not clash', () => {
+  assertEqual(findConflicts([mondayDrill], { day: 0, start: '20:00', end: '21:00' }).length, 0);
+  assertEqual(findConflicts([mondayDrill], { day: 0, start: '18:00', end: '19:00' }).length, 0);
+});
+
+test('findConflicts: same times on another day do not clash', () => {
+  assertEqual(findConflicts([mondayDrill], { day: 1, start: '19:00', end: '20:00' }).length, 0);
+});
+
+test('findConflicts: a session never clashes with itself when edited', () => {
+  assertEqual(findConflicts([mondayDrill], { day: 0, start: '19:00', end: '20:00' }, 'a').length, 0);
 });

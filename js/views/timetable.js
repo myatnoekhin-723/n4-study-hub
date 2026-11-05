@@ -2,7 +2,7 @@
 // Each 15-minute slot is one grid row, so a session is placed with
 // grid-row: startSlot / endSlot. No pixel maths needed.
 
-import { validateSession } from '../validation.js';
+import { findConflicts, validateSession } from '../validation.js';
 import {
   DAY_NAMES,
   GRID_SLOTS,
@@ -33,6 +33,7 @@ export function createTimetableView(app) {
   const deleteButton = byId('session-delete');
   const formStatus = byId('session-form-status');
   const categorySelect = byId('session-category');
+  const studyLink = byId('session-study');
   const grid = byId('timetable-grid');
 
   // id of the session in the form, or null when adding a new session
@@ -42,15 +43,31 @@ export function createTimetableView(app) {
     return Object.fromEntries(FIELDS.map((field) => [field, form.elements[field].value]));
   }
 
+  // A session may link to a category whose cards were all deleted. Keep that
+  // category as an option, marked "(no cards)", so the session can still be saved.
   function renderCategoryOptions(selected = '') {
-    fillSelect(
-      categorySelect,
-      [
-        { value: '', label: 'None' },
-        ...listCategories(app.data.cards).map((category) => ({ value: category, label: category })),
-      ],
-      selected
-    );
+    const categories = listCategories(app.data.cards);
+    const options = [
+      { value: '', label: 'None' },
+      ...categories.map((category) => ({ value: category, label: category })),
+    ];
+    if (selected && !categories.includes(selected)) {
+      options.push({ value: selected, label: `${selected} (no cards)` });
+    }
+    fillSelect(categorySelect, options, selected);
+  }
+
+  // "Study now" opens Review for the linked category of the session being edited
+  function updateStudyLink() {
+    const category = categorySelect.value;
+    studyLink.hidden = editingId === null || category === '';
+    studyLink.href = `#review?cat=${encodeURIComponent(category)}`;
+  }
+
+  function conflictMessage(clashes) {
+    const [first] = clashes;
+    const more = clashes.length > 1 ? ` and ${clashes.length - 1} more` : '';
+    return `Clashes with ${first.title} (${DAY_NAMES[first.day]} ${first.start}–${first.end})${more}.`;
   }
 
   function resetForm() {
@@ -63,6 +80,7 @@ export function createTimetableView(app) {
     submitButton.textContent = 'Add session';
     cancelButton.hidden = true;
     deleteButton.hidden = true;
+    updateStudyLink();
   }
 
   function startEdit(session) {
@@ -78,6 +96,7 @@ export function createTimetableView(app) {
     submitButton.textContent = 'Save changes';
     cancelButton.hidden = false;
     deleteButton.hidden = false;
+    updateStudyLink();
     formStatus.textContent = '';
     form.scrollIntoView({ behavior: 'smooth', block: 'start' });
     form.elements.title.focus();
@@ -86,6 +105,13 @@ export function createTimetableView(app) {
   function onSubmit(event) {
     event.preventDefault();
     const result = validateSession(readForm());
+    if (result.valid) {
+      const clashes = findConflicts(app.data.sessions, result.value, editingId);
+      if (clashes.length > 0) {
+        result.valid = false;
+        result.errors.start = conflictMessage(clashes);
+      }
+    }
     showFieldErrors(form, FIELDS, result.errors, 'session-');
     if (!result.valid) {
       formStatus.textContent = '';
@@ -148,7 +174,10 @@ export function createTimetableView(app) {
       el('span', 'tt-session-time', `${session.start}–${session.end}`)
     );
     if (session.category && minutes >= CATEGORY_LINE_MINUTES) {
-      block.append(el('span', 'tt-session-category', session.category));
+      const hasCards = app.data.cards.some((card) => card.category === session.category);
+      block.append(
+        el('span', 'tt-session-category', hasCards ? session.category : `${session.category} (no cards)`)
+      );
     }
     return placeAt(
       block,
@@ -184,6 +213,7 @@ export function createTimetableView(app) {
   cancelButton.addEventListener('click', onCancel);
   deleteButton.addEventListener('click', onDelete);
   grid.addEventListener('click', onGridClick);
+  categorySelect.addEventListener('change', updateStudyLink);
   resetForm();
 
   return {

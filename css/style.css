@@ -119,6 +119,12 @@ main {
   background: var(--bg);
 }
 
+/* Links that look like buttons, e.g. "Study now" */
+a.button {
+  display: inline-block;
+  text-decoration: none;
+}
+
 .button:disabled {
   opacity: 0.5;
   cursor: not-allowed;

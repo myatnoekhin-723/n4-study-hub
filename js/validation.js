@@ -150,3 +150,18 @@ export function validateSession(input) {
 
   return { valid: Object.keys(errors).length === 0, errors, value };
 }
+
+// Sessions on the same day whose times overlap the candidate.
+// Back-to-back sessions (one ends at 20:00, the next starts at 20:00) are fine.
+// editingId: the session being edited, so it never clashes with itself.
+export function findConflicts(sessions, candidate, editingId = null) {
+  const start = toMinutes(candidate.start);
+  const end = toMinutes(candidate.end);
+  return sessions.filter(
+    (other) =>
+      other.id !== editingId &&
+      other.day === candidate.day &&
+      toMinutes(other.start) < end &&
+      start < toMinutes(other.end)
+  );
+}
