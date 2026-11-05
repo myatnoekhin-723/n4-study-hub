@@ -12,6 +12,8 @@
   --mint-soft: #e2f6ef;
   --border: #cfe5ea;
   --danger: #b3261e;        /* errors and Delete stay red */
+  --danger-soft: #fdecea;
+  --mint-text: #1d7a5c;     /* mint dark enough for text */
   --warn-bg: #fff4d6;
   --warn-text: #7a5600;
   --header-bg: linear-gradient(90deg, #dff1fb 0%, #ddf5ec 100%);
@@ -22,6 +24,11 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* Classes that set display (flex, grid...) would otherwise override hidden */
+[hidden] {
+  display: none !important;
 }
 
 body {
@@ -132,7 +139,7 @@ main {
 }
 
 .button-danger:hover {
-  background: #fdecea;
+  background: var(--danger-soft);
   border-color: #f3c1bc;
 }
 
@@ -441,6 +448,92 @@ main {
   justify-content: center;
   gap: 8px;
   margin-top: 12px;
+}
+
+/* ---------- Mode switch (Flip review / Quiz) ---------- */
+.mode-switch {
+  display: inline-flex;
+  margin-bottom: 12px;
+}
+
+.mode-switch .button {
+  border-radius: 0;
+}
+
+.mode-switch .button:first-child {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.mode-switch .button:last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+  border-left: 0;
+}
+
+.mode-switch .button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ---------- Quiz ---------- */
+.quiz-panel {
+  text-align: center;
+}
+
+.quiz-prompt {
+  margin: 8px 0 0;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.quiz-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  max-width: 520px;
+  margin: 12px auto;
+}
+
+.quiz-choice {
+  padding: 10px 14px;
+  overflow-wrap: anywhere;
+}
+
+/* Answered choices stay readable instead of fading like other disabled buttons */
+.quiz-choice:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.quiz-choice.is-correct {
+  background: var(--mint-soft);
+  border-color: var(--mint);
+  font-weight: 600;
+}
+
+.quiz-choice.is-wrong {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.quiz-feedback {
+  min-height: 1.5em;
+  margin: 8px 0;
+}
+
+.quiz-feedback.is-correct {
+  color: var(--mint-text);
+  font-weight: 600;
+}
+
+.quiz-feedback.is-wrong {
+  color: var(--danger);
+}
+
+.quiz-score {
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 @media (prefers-reduced-motion: reduce) {

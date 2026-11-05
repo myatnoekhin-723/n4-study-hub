@@ -16,6 +16,13 @@ import {
   reviewPool,
   shuffle,
   paginate,
+  quizAvailability,
+  buildQuizQuestion,
+  buildQuiz,
+  scoreQuiz,
+  addQuizResult,
+  QUIZ_LENGTH,
+  QUIZ_HISTORY_LIMIT,
 } from '../js/logic.js';
 import { SEED_CARDS } from '../js/seed.js';
 
@@ -409,4 +416,82 @@ test('paginate an empty list gives 1 empty page', () => {
   assertEqual(result.items, []);
   assertEqual(result.page, 1);
   assertEqual(result.totalPages, 1);
+});
+
+// ---------- logic: quiz ----------
+
+function quizCard(id, meaning, category = 'Verbs') {
+  return { id, japanese: `語${id}`, reading: 'ご', meaning, category, status: 'new' };
+}
+
+const quizDeck = [
+  quizCard('1', 'to go'),
+  quizCard('2', 'to come'),
+  quizCard('3', 'to eat', 'Nouns'),
+  quizCard('4', 'to drink', 'Nouns'),
+  quizCard('5', 'to see', 'Nouns'),
+];
+
+test('quizAvailability: ok when the deck has 4+ different meanings', () => {
+  const result = quizAvailability(quizDeck, 'Verbs');
+  assert(result.ok, result.reason);
+  assertEqual(result.questionCount, 2);
+});
+
+test('quizAvailability: empty category is not ok', () => {
+  const result = quizAvailability(quizDeck, 'Missing');
+  assert(!result.ok);
+  assert(result.reason.includes('Missing'), result.reason);
+});
+
+test('quizAvailability: fewer than 4 different meanings is not ok', () => {
+  const deck = [quizCard('1', 'to go'), quizCard('2', 'To Go'), quizCard('3', 'to come'), quizCard('4', 'to eat')];
+  assert(!quizAvailability(deck).ok);
+});
+
+test('quizAvailability: at most QUIZ_LENGTH questions', () => {
+  const deck = Array.from({ length: 25 }, (_, i) => quizCard(String(i), `meaning ${i}`));
+  assertEqual(quizAvailability(deck).questionCount, QUIZ_LENGTH);
+});
+
+test('buildQuizQuestion: 4 different choices including the answer', () => {
+  const question = buildQuizQuestion(quizDeck[0], quizDeck);
+  assertEqual(question.choices.length, 4);
+  assert(question.choices.includes('to go'), 'answer missing');
+  assertEqual(new Set(question.choices).size, 4);
+});
+
+test('buildQuizQuestion: never repeats a meaning shared by two cards', () => {
+  const deck = [
+    quizCard('1', 'to go'),
+    quizCard('2', 'to go'),
+    quizCard('3', ' TO GO '),
+    quizCard('4', 'to come'),
+    quizCard('5', 'to eat'),
+    quizCard('6', 'to see'),
+  ];
+  for (let round = 0; round < 20; round++) {
+    const keys = buildQuizQuestion(deck[0], deck).choices.map((choice) => choice.trim().toLowerCase());
+    assertEqual(new Set(keys).size, keys.length, `round ${round}:`);
+    assertEqual(keys.length, 4);
+  }
+});
+
+test('buildQuiz: questions only from the chosen category', () => {
+  const quiz = buildQuiz(quizDeck, 'Nouns');
+  assertEqual(quiz.length, 3);
+  assert(quiz.every((question) => ['3', '4', '5'].includes(question.cardId)));
+});
+
+test('scoreQuiz counts correct answers', () => {
+  const questions = [{ answer: 'a' }, { answer: 'b' }, { answer: 'c' }, { answer: 'd' }];
+  assertEqual(scoreQuiz(questions, ['a', 'x', 'c', undefined]), { correct: 2, total: 4, percent: 50 });
+  assertEqual(scoreQuiz([], []), { correct: 0, total: 0, percent: 0 });
+});
+
+test('addQuizResult keeps the newest QUIZ_HISTORY_LIMIT results, newest first', () => {
+  let history = [];
+  for (let i = 1; i <= QUIZ_HISTORY_LIMIT + 5; i++) history = addQuizResult(history, { id: String(i) });
+  assertEqual(history.length, QUIZ_HISTORY_LIMIT);
+  assertEqual(history[0].id, String(QUIZ_HISTORY_LIMIT + 5));
 });

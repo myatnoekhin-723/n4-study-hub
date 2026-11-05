@@ -131,54 +131,84 @@
     <section id="view-review" data-view="review" hidden>
       <h2>Review / Quiz</h2>
 
+      <div class="mode-switch" role="group" aria-label="Mode">
+        <button type="button" id="mode-review" class="button" aria-pressed="true">Flip review</button>
+        <button type="button" id="mode-quiz" class="button" aria-pressed="false">Quiz</button>
+      </div>
+
       <div class="toolbar">
         <div class="field">
           <label for="review-category">Category</label>
           <select id="review-category"></select>
         </div>
-        <label class="checkbox">
+        <label id="review-include-known-label" class="checkbox">
           <input type="checkbox" id="review-include-known"> Include known cards
         </label>
       </div>
 
-      <div id="review-area" class="review-area" hidden>
-        <p id="review-progress" class="count"></p>
+      <div id="review-mode">
+        <div id="review-area" class="review-area" hidden>
+          <p id="review-progress" class="count"></p>
 
-        <button type="button" id="flashcard" class="flashcard" aria-pressed="false"
-                aria-describedby="flashcard-hint">
-          <span class="flashcard-inner">
-            <span id="flashcard-front" class="flashcard-face flashcard-front">
-              <span id="flashcard-japanese" class="flashcard-japanese" lang="ja"></span>
+          <button type="button" id="flashcard" class="flashcard" aria-pressed="false"
+                  aria-describedby="flashcard-hint">
+            <span class="flashcard-inner">
+              <span id="flashcard-front" class="flashcard-face flashcard-front">
+                <span id="flashcard-japanese" class="flashcard-japanese" lang="ja"></span>
+              </span>
+              <span id="flashcard-back" class="flashcard-face flashcard-back" aria-hidden="true">
+                <span id="flashcard-reading" class="flashcard-reading" lang="ja"></span>
+                <span id="flashcard-meaning" class="flashcard-meaning"></span>
+              </span>
             </span>
-            <span id="flashcard-back" class="flashcard-face flashcard-back" aria-hidden="true">
-              <span id="flashcard-reading" class="flashcard-reading" lang="ja"></span>
-              <span id="flashcard-meaning" class="flashcard-meaning"></span>
-            </span>
-          </span>
-        </button>
-        <p id="flashcard-hint" class="hint">Click the card, or press Space or Enter, to flip it.</p>
-        <p id="review-status" class="hint"></p>
+          </button>
+          <p id="flashcard-hint" class="hint">Click the card, or press Space or Enter, to flip it.</p>
+          <p id="review-status" class="hint"></p>
 
-        <div class="review-actions">
-          <button type="button" id="review-prev" class="button button-icon"
-                  aria-label="Previous card" title="Previous card">
-            <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-prev"></use></svg>
-          </button>
-          <button type="button" id="review-learning" class="button">Still learning</button>
-          <button type="button" id="review-known" class="button button-primary">Known</button>
-          <button type="button" id="review-next" class="button button-icon"
-                  aria-label="Next card" title="Next card">
-            <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-next"></use></svg>
-          </button>
+          <div class="review-actions">
+            <button type="button" id="review-prev" class="button button-icon"
+                    aria-label="Previous card" title="Previous card">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-prev"></use></svg>
+            </button>
+            <button type="button" id="review-learning" class="button">Still learning</button>
+            <button type="button" id="review-known" class="button button-primary">Known</button>
+            <button type="button" id="review-next" class="button button-icon"
+                    aria-label="Next card" title="Next card">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#icon-next"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <p id="review-empty" class="empty" hidden></p>
+
+        <div id="review-done" class="review-done" hidden>
+          <h3>Done!</h3>
+          <p id="review-summary"></p>
+          <button type="button" id="review-restart" class="button button-primary">Review again</button>
         </div>
       </div>
 
-      <p id="review-empty" class="empty" hidden></p>
+      <!-- Quiz: multiple choice, Japanese -> meaning -->
+      <div id="quiz-mode" class="quiz" hidden>
+        <div id="quiz-start" class="quiz-panel">
+          <p id="quiz-start-text"></p>
+          <button type="button" id="quiz-start-button" class="button button-primary">Start quiz</button>
+        </div>
 
-      <div id="review-done" class="review-done" hidden>
-        <h3>Done!</h3>
-        <p id="review-summary"></p>
-        <button type="button" id="review-restart" class="button button-primary">Review again</button>
+        <div id="quiz-question" class="quiz-panel" hidden>
+          <p id="quiz-progress" class="count"></p>
+          <p id="quiz-prompt" class="quiz-prompt" lang="ja"></p>
+          <p class="hint">What does it mean?</p>
+          <div id="quiz-choices" class="quiz-choices"></div>
+          <p id="quiz-feedback" class="quiz-feedback" role="status"></p>
+          <button type="button" id="quiz-next" class="button button-primary" hidden>Next question</button>
+        </div>
+
+        <div id="quiz-result" class="quiz-panel" hidden>
+          <h3>Quiz finished</h3>
+          <p id="quiz-score" class="quiz-score"></p>
+          <button type="button" id="quiz-restart" class="button button-primary">Try another quiz</button>
+        </div>
       </div>
     </section>
 

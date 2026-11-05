@@ -59,3 +59,80 @@ export function paginate(items, page, pageSize) {
   const start = (current - 1) * pageSize;
   return { items: items.slice(start, start + pageSize), page: current, totalPages, start };
 }
+
+// ---------- Quiz ----------
+
+export const QUIZ_LENGTH = 10;
+export const QUIZ_CHOICES = 4;
+export const QUIZ_HISTORY_LIMIT = 20;
+
+// Two meanings count as the same choice if they differ only in case or spacing.
+function meaningKey(meaning) {
+  return normalizeText(meaning).toLowerCase();
+}
+
+function countDistinctMeanings(cards) {
+  return new Set(cards.map((card) => meaningKey(card.meaning))).size;
+}
+
+// Can a quiz run for this category ('' = all)? Returns { ok, reason, questionCount }.
+// Questions come from the category, but wrong answers come from the whole deck,
+// so a small category still works.
+export function quizAvailability(cards, category = '') {
+  const pool = cards.filter((card) => !category || card.category === category);
+  if (pool.length === 0) {
+    const reason = category
+      ? `There are no cards in "${category}" to quiz on.`
+      : 'You have no cards yet. Add some on the Flashcards page.';
+    return { ok: false, reason, questionCount: 0 };
+  }
+  if (countDistinctMeanings(cards) < QUIZ_CHOICES) {
+    return {
+      ok: false,
+      reason: `The quiz needs at least ${QUIZ_CHOICES} cards with different meanings.`,
+      questionCount: 0,
+    };
+  }
+  return { ok: true, reason: '', questionCount: Math.min(QUIZ_LENGTH, pool.length) };
+}
+
+// One multiple-choice question: the card's meaning plus up to 3 wrong meanings
+// from the whole deck. Choices never repeat, even when two cards share a meaning.
+export function buildQuizQuestion(card, allCards, random = Math.random) {
+  const usedKeys = new Set([meaningKey(card.meaning)]);
+  const wrongChoices = [];
+  for (const other of shuffle(allCards, random)) {
+    if (wrongChoices.length === QUIZ_CHOICES - 1) break;
+    const key = meaningKey(other.meaning);
+    if (!usedKeys.has(key)) {
+      usedKeys.add(key);
+      wrongChoices.push(other.meaning);
+    }
+  }
+  return {
+    cardId: card.id,
+    prompt: card.japanese,
+    reading: card.reading,
+    answer: card.meaning,
+    choices: shuffle([card.meaning, ...wrongChoices], random),
+  };
+}
+
+export function buildQuiz(cards, category = '', random = Math.random) {
+  const pool = cards.filter((card) => !category || card.category === category);
+  return shuffle(pool, random)
+    .slice(0, QUIZ_LENGTH)
+    .map((card) => buildQuizQuestion(card, cards, random));
+}
+
+// pickedChoices[i] is the choice text picked for questions[i].
+export function scoreQuiz(questions, pickedChoices) {
+  const correct = questions.filter((question, i) => pickedChoices[i] === question.answer).length;
+  const total = questions.length;
+  return { correct, total, percent: total === 0 ? 0 : Math.round((correct / total) * 100) };
+}
+
+// Newest first, keeping only the latest QUIZ_HISTORY_LIMIT results.
+export function addQuizResult(history, result) {
+  return [result, ...history].slice(0, QUIZ_HISTORY_LIMIT);
+}

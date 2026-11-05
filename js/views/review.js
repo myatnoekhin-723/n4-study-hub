@@ -1,12 +1,19 @@
-// Review view: flip through cards and mark each one "Known" or "Still learning".
+// Review view: flip through cards and mark each one "Known" or "Still learning",
+// or switch to Quiz mode (js/views/quiz.js). Both modes share the category.
 // Opening #review?cat=Verbs starts a round for that category.
 
 import { listCategories, reviewPool, shuffle, STATUS_LABELS } from '../logic.js';
 import { byId, fillSelect, setIconButton } from './dom.js';
+import { createQuiz } from './quiz.js';
 
 export function createReviewView(app) {
   const categorySelect = byId('review-category');
   const includeKnownBox = byId('review-include-known');
+  const includeKnownLabel = byId('review-include-known-label');
+  const reviewModeButton = byId('mode-review');
+  const quizModeButton = byId('mode-quiz');
+  const reviewMode = byId('review-mode');
+  const quizMode = byId('quiz-mode');
   const area = byId('review-area');
   const progress = byId('review-progress');
   const flashcard = byId('flashcard');
@@ -29,6 +36,28 @@ export function createReviewView(app) {
   let deck = []; // card objects, shuffled
   let index = 0;
   let marks = {}; // card id -> 'known' | 'learning'
+
+  let mode = 'review'; // 'review' | 'quiz'
+  const quiz = createQuiz(app, () => categorySelect.value);
+
+  function setMode(newMode) {
+    mode = newMode;
+    reviewModeButton.setAttribute('aria-pressed', String(mode === 'review'));
+    quizModeButton.setAttribute('aria-pressed', String(mode === 'quiz'));
+    reviewMode.hidden = mode !== 'review';
+    quizMode.hidden = mode !== 'quiz';
+    includeKnownLabel.hidden = mode !== 'review'; // the quiz always uses every card
+    restart();
+  }
+
+  // Starts again in the current mode, e.g. after the category changes
+  function restart() {
+    if (mode === 'review') {
+      startRound();
+    } else {
+      quiz.reset();
+    }
+  }
 
   function renderCategories(preferred) {
     const categories = listCategories(app.data.cards);
@@ -158,18 +187,21 @@ export function createReviewView(app) {
   knownButton.addEventListener('click', () => mark('known'));
   learningButton.addEventListener('click', () => mark('learning'));
   restartButton.addEventListener('click', startRound);
-  categorySelect.addEventListener('change', startRound);
+  categorySelect.addEventListener('change', restart);
   includeKnownBox.addEventListener('change', startRound);
+  reviewModeButton.addEventListener('click', () => setMode('review'));
+  quizModeButton.addEventListener('click', () => setMode('quiz'));
 
   return {
     enter(params) {
       renderCategories(params.get('cat') ?? categorySelect.value);
-      startRound();
+      restart();
     },
     leave() {
-      // Marks are saved as you go, so there is nothing to keep.
+      // Review marks are saved as you go. An unfinished quiz is thrown away.
       deck = [];
       marks = {};
+      quiz.reset();
     },
   };
 }
