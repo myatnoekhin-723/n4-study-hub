@@ -285,7 +285,65 @@
 
     <section id="view-dashboard" data-view="dashboard" hidden>
       <h2>Dashboard</h2>
-      <p class="placeholder">Stats coming on Day 9.</p>
+
+      <div class="stat-grid">
+        <div class="stat">
+          <span id="stat-total" class="stat-value">0</span>
+          <span class="stat-label">Cards</span>
+        </div>
+        <div class="stat stat-new">
+          <span id="stat-new" class="stat-value">0</span>
+          <span class="stat-label">New</span>
+        </div>
+        <div class="stat stat-learning">
+          <span id="stat-learning" class="stat-value">0</span>
+          <span class="stat-label">Still learning</span>
+        </div>
+        <div class="stat stat-known">
+          <span id="stat-known" class="stat-value">0</span>
+          <span class="stat-label">Known</span>
+        </div>
+        <div class="stat">
+          <span id="stat-week" class="stat-value">0 min</span>
+          <span class="stat-label">Planned per week</span>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="dash-panel">
+          <h3>Progress</h3>
+          <label for="known-progress" id="known-progress-label">Known cards</label>
+          <progress id="known-progress" class="progress" max="100" value="0"></progress>
+          <table class="dash-table">
+            <thead>
+              <tr><th scope="col">Category</th><th scope="col">Cards</th><th scope="col">Known</th></tr>
+            </thead>
+            <tbody id="category-rows"></tbody>
+          </table>
+          <p id="category-empty" class="hint" hidden>No cards yet.</p>
+        </div>
+
+        <div class="dash-panel">
+          <h3 id="today-title">Today</h3>
+          <ul id="today-list" class="dash-list"></ul>
+          <p id="today-empty" class="hint" hidden>No study sessions today. Add some on the Timetable page.</p>
+
+          <h3>Recent quizzes</h3>
+          <ul id="quiz-list" class="dash-list"></ul>
+          <p id="quiz-empty" class="hint" hidden>No quizzes yet. Try one on the Review / Quiz page.</p>
+        </div>
+
+        <div class="dash-panel">
+          <h3>Backup</h3>
+          <p class="hint">Export saves all your cards, sessions and quiz results to a file. Import replaces everything with a file you exported.</p>
+          <div class="form-actions">
+            <button type="button" id="export-button" class="button">Export JSON</button>
+            <button type="button" id="import-button" class="button">Import JSON</button>
+            <input type="file" id="import-file" accept=".json,application/json" hidden>
+          </div>
+          <p id="backup-status" class="form-status" role="status"></p>
+        </div>
+      </div>
     </section>
   </main>
 

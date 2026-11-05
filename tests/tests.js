@@ -8,6 +8,7 @@ import {
   validateCard,
   validateSession,
   findConflicts,
+  validateImport,
 } from '../js/validation.js';
 import { createStore, emptyData, DATA_KEY, BACKUP_PREFIX } from '../js/store.js';
 import {
@@ -29,6 +30,10 @@ import {
   sessionMinutes,
   sortSessions,
   GRID_SLOTS,
+  cardStats,
+  sessionsForDay,
+  weeklyStudyMinutes,
+  formatMinutes,
 } from '../js/logic.js';
 import { SEED_CARDS } from '../js/seed.js';
 
@@ -94,7 +99,7 @@ test('normalizeText turns half-width katakana into full-width', () => {
 });
 
 test('normalizeText turns a full-width space into a normal space', () => {
-  assertEqual(normalizeText('a　b'), 'a b');
+  assertEqual(normalizeText('a\u3000b'), 'a b');
 });
 
 test('normalizeText handles null and undefined', () => {
@@ -556,4 +561,123 @@ test('findConflicts: same times on another day do not clash', () => {
 
 test('findConflicts: a session never clashes with itself when edited', () => {
   assertEqual(findConflicts([mondayDrill], { day: 0, start: '19:00', end: '20:00' }, 'a').length, 0);
+});
+
+// ---------- logic: dashboard ----------
+
+test('cardStats counts statuses and categories', () => {
+  const stats = cardStats([
+    { category: 'Verbs', status: 'known' },
+    { category: 'Verbs', status: 'new' },
+    { category: 'Nouns', status: 'learning' },
+    { category: 'Nouns', status: 'known' },
+  ]);
+  assertEqual([stats.total, stats.new, stats.learning, stats.known, stats.knownPercent], [4, 1, 1, 2, 50]);
+  assertEqual(stats.byCategory, [
+    { category: 'Nouns', total: 2, known: 1 },
+    { category: 'Verbs', total: 2, known: 1 },
+  ]);
+});
+
+test('cardStats with no cards is all zero', () => {
+  const stats = cardStats([]);
+  assertEqual([stats.total, stats.knownPercent, stats.byCategory.length], [0, 0, 0]);
+});
+
+test('sessionsForDay returns that day, sorted by start', () => {
+  const sessions = [
+    { id: 'b', day: 3, start: '19:00', end: '20:00' },
+    { id: 'x', day: 4, start: '07:00', end: '08:00' },
+    { id: 'a', day: 3, start: '07:00', end: '08:00' },
+  ];
+  assertEqual(sessionsForDay(sessions, 3).map((s) => s.id), ['a', 'b']);
+});
+
+test('weeklyStudyMinutes and formatMinutes', () => {
+  const sessions = [{ start: '19:00', end: '20:30' }, { start: '07:00', end: '07:45' }];
+  assertEqual(weeklyStudyMinutes(sessions), 135);
+  assertEqual(formatMinutes(135), '2 h 15 min');
+  assertEqual(formatMinutes(45), '45 min');
+  assertEqual(formatMinutes(120), '2 h');
+  assertEqual(formatMinutes(0), '0 min');
+});
+
+// ---------- validateImport ----------
+
+function exportSample() {
+  return {
+    schemaVersion: 1,
+    cards: [
+      { id: 'c1', japanese: '勉強', reading: 'べんきょう', meaning: 'study', category: 'Nouns', status: 'known', createdAt: 't', updatedAt: 't' },
+    ],
+    sessions: [
+      { id: 's1', title: 'Drill', day: 0, start: '19:00', end: '20:00', category: 'Gone', note: '' },
+    ],
+    quizHistory: [{ id: 'q1', date: 't', category: null, total: 10, correct: 7 }],
+  };
+}
+
+test('validateImport accepts a valid export (orphan category included)', () => {
+  const result = validateImport(exportSample());
+  assert(result.valid, result.errors.join(' | '));
+  assertEqual(result.data, exportSample());
+});
+
+test('validateImport rejects things that are not an export', () => {
+  assert(!validateImport(null).valid);
+  assert(!validateImport([]).valid);
+  assert(!validateImport('text').valid);
+});
+
+test('validateImport rejects another schema version', () => {
+  const result = validateImport({ ...exportSample(), schemaVersion: 2 });
+  assert(!result.valid);
+  assert(result.errors[0].includes('version 2'), result.errors[0]);
+});
+
+test('validateImport rejects a missing list', () => {
+  const sample = exportSample();
+  delete sample.sessions;
+  assert(validateImport(sample).errors[0].includes('sessions'));
+});
+
+test('validateImport rejects an invalid card and names it', () => {
+  const sample = exportSample();
+  sample.cards[0].reading = 'benkyou';
+  const result = validateImport(sample);
+  assert(!result.valid);
+  assert(result.errors[0].startsWith('Card 1:'), result.errors[0]);
+  assertEqual(result.data, null);
+});
+
+test('validateImport rejects an unknown status', () => {
+  const sample = exportSample();
+  sample.cards[0].status = 'mastered';
+  assert(!validateImport(sample).valid);
+});
+
+test('validateImport rejects duplicate ids', () => {
+  const sample = exportSample();
+  sample.sessions[0].id = 'c1';
+  assert(validateImport(sample).errors.some((error) => error.includes('used twice')));
+});
+
+test('validateImport rejects overlapping sessions', () => {
+  const sample = exportSample();
+  sample.sessions.push({ id: 's2', day: 0, start: '19:30', end: '20:30', title: 'Clash', category: null, note: '' });
+  assert(validateImport(sample).errors.some((error) => error.includes('overlaps')));
+});
+
+test('validateImport rejects a bad quiz score', () => {
+  const sample = exportSample();
+  sample.quizHistory[0].correct = 11;
+  assert(!validateImport(sample).valid);
+});
+
+test('validateImport lists at most 5 errors but counts all', () => {
+  const sample = exportSample();
+  sample.cards = Array.from({ length: 8 }, (_, i) => ({ id: `c${i}` }));
+  const result = validateImport(sample);
+  assertEqual(result.errors.length, 5);
+  assert(result.errorCount >= 8, String(result.errorCount));
 });

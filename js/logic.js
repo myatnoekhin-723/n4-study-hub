@@ -162,3 +162,42 @@ export function sessionMinutes(session) {
 export function sortSessions(sessions) {
   return [...sessions].sort((a, b) => a.day - b.day || toMinutes(a.start) - toMinutes(b.start));
 }
+
+// ---------- Dashboard ----------
+
+// Counts by status, the % known, and per-category totals (sorted A–Z).
+export function cardStats(cards) {
+  const count = (status) => cards.filter((card) => card.status === status).length;
+  const known = count('known');
+  return {
+    total: cards.length,
+    new: count('new'),
+    learning: count('learning'),
+    known,
+    knownPercent: cards.length === 0 ? 0 : Math.round((known / cards.length) * 100),
+    byCategory: listCategories(cards).map((category) => {
+      const inCategory = cards.filter((card) => card.category === category);
+      return {
+        category,
+        total: inCategory.length,
+        known: inCategory.filter((card) => card.status === 'known').length,
+      };
+    }),
+  };
+}
+
+export function sessionsForDay(sessions, day) {
+  return sortSessions(sessions.filter((session) => session.day === day));
+}
+
+export function weeklyStudyMinutes(sessions) {
+  return sessions.reduce((total, session) => total + sessionMinutes(session), 0);
+}
+
+// 90 -> "1 h 30 min", 45 -> "45 min", 120 -> "2 h"
+export function formatMinutes(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest} min`;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}

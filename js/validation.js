@@ -1,8 +1,10 @@
 // Pure validation helpers. Nothing in this file touches the DOM,
 // so tests.html can test every rule directly.
 
+import { SCHEMA_VERSION } from './store.js';
+
 // Hiragana (U+3040–309F), katakana (U+30A0–30FF, includes ー and ・) and spaces.
-export const READING_PATTERN = /^[぀-ゟ゠-ヿ\s]+$/;
+export const READING_PATTERN = /^[\u3040-\u309F\u30A0-\u30FF\s]+$/;
 
 export const LIMITS = {
   japanese: 30,
@@ -164,4 +166,119 @@ export function findConflicts(sessions, candidate, editingId = null) {
       toMinutes(other.start) < end &&
       start < toMinutes(other.end)
   );
+}
+
+// ---------- Import ----------
+
+export const CARD_STATUSES = ['new', 'learning', 'known'];
+const MAX_IMPORT_ERRORS = 5;
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function firstError(errors) {
+  return Object.values(errors)[0];
+}
+
+// Checks a parsed export file before it replaces the user's data.
+// Every item must pass the same rules as the forms, ids must be unique,
+// and sessions must not overlap. Returns { valid, errors, errorCount, data }:
+// data is the cleaned-up copy to save (only when valid).
+export function validateImport(input) {
+  const errors = [];
+  const fail = (message) => ({ valid: false, errors: [message], errorCount: 1, data: null });
+
+  if (!isPlainObject(input)) return fail('This file is not an N4 Study Hub export.');
+  if (input.schemaVersion !== SCHEMA_VERSION) {
+    return fail(`This file has version ${input.schemaVersion}, but the app needs version ${SCHEMA_VERSION}.`);
+  }
+  for (const key of ['cards', 'sessions', 'quizHistory']) {
+    if (!Array.isArray(input[key])) return fail(`This file has no "${key}" list.`);
+  }
+
+  const seenIds = new Set();
+  function checkId(item, where) {
+    if (typeof item.id !== 'string' || item.id === '') {
+      errors.push(`${where}: missing id.`);
+    } else if (seenIds.has(item.id)) {
+      errors.push(`${where}: the id is used twice.`);
+    } else {
+      seenIds.add(item.id);
+    }
+  }
+
+  const cards = [];
+  input.cards.forEach((raw, index) => {
+    const where = `Card ${index + 1}`;
+    if (!isPlainObject(raw)) {
+      errors.push(`${where}: not a card.`);
+      return;
+    }
+    checkId(raw, where);
+    const result = validateCard(raw, cards);
+    if (!result.valid) errors.push(`${where}: ${firstError(result.errors)}`);
+    if (!CARD_STATUSES.includes(raw.status)) errors.push(`${where}: unknown status.`);
+    if (typeof raw.createdAt !== 'string' || typeof raw.updatedAt !== 'string') {
+      errors.push(`${where}: missing dates.`);
+    }
+    cards.push({
+      id: raw.id,
+      ...result.value,
+      status: raw.status,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+    });
+  });
+
+  const sessions = [];
+  input.sessions.forEach((raw, index) => {
+    const where = `Session ${index + 1}`;
+    if (!isPlainObject(raw)) {
+      errors.push(`${where}: not a session.`);
+      return;
+    }
+    checkId(raw, where);
+    const result = validateSession(raw);
+    if (!result.valid) {
+      errors.push(`${where}: ${firstError(result.errors)}`);
+    } else if (findConflicts(sessions, result.value).length > 0) {
+      errors.push(`${where}: overlaps another session.`);
+    }
+    sessions.push({ id: raw.id, ...result.value });
+  });
+
+  const quizHistory = [];
+  input.quizHistory.forEach((raw, index) => {
+    const where = `Quiz result ${index + 1}`;
+    if (!isPlainObject(raw)) {
+      errors.push(`${where}: not a quiz result.`);
+      return;
+    }
+    checkId(raw, where);
+    const validNumbers =
+      Number.isInteger(raw.total) &&
+      raw.total > 0 &&
+      Number.isInteger(raw.correct) &&
+      raw.correct >= 0 &&
+      raw.correct <= raw.total;
+    const validCategory = raw.category === null || typeof raw.category === 'string';
+    if (!validNumbers || !validCategory || typeof raw.date !== 'string') {
+      errors.push(`${where}: invalid score, date or category.`);
+    }
+    quizHistory.push({
+      id: raw.id,
+      date: raw.date,
+      category: raw.category,
+      total: raw.total,
+      correct: raw.correct,
+    });
+  });
+
+  return {
+    valid: errors.length === 0,
+    errors: errors.slice(0, MAX_IMPORT_ERRORS),
+    errorCount: errors.length,
+    data: errors.length === 0 ? { schemaVersion: SCHEMA_VERSION, cards, sessions, quizHistory } : null,
+  };
 }
