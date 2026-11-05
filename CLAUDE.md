@@ -11,7 +11,7 @@ N4 Study Hub: a beginner-level JLPT N4 study app (flashcards, review/quiz, weekl
 - No authentication, payments or personal data.
 - Keep the code readable for a beginner. Don't overbuild: no SRS algorithm, drag-and-drop, charts, real calendar dates, or merge-on-import.
 
-Status: Days 1–5 are done (skeleton/router, store + validation + tests, flashcards CRUD/filter/search/pagination/seed, flip review). Still to do: Day 6 quiz (`buildQuizQuestion`, score, `quizHistory` capped at 20), Days 7–8 timetable (CSS-grid week view, `findConflicts`, "Study now" → `#review?cat=…`), Day 9 dashboard + JSON export/import (`validateImport`), Day 10 test pass, README, tag `v1.0`.
+Status: version 1.0. All 10 days of the plan are done: flashcards (CRUD, filter/search, pagination, seed), flip review, quiz (history capped at 20), timetable (CSS-grid week, overlap blocking, "Study now" → `#review?cat=…`), dashboard, and JSON export/import. `TESTING.md` is the manual checklist; `README.md` describes features and limitations.
 
 ## Commands
 
@@ -27,13 +27,13 @@ The harness has no CLI filter. To run a subset, filter `runAll()` results by nam
 
 ## Architecture
 
-**Pure vs. DOM split.** `js/validation.js`, `js/logic.js` and `js/store.js` never touch the DOM, so `tests/tests.js` imports them directly. The views in `js/views/` hold all DOM code. `js/main.js` is the only module with side effects on import (it loads data, builds views and starts the router). Tests must never import it. Put new rules or calculations in the pure modules and test them there. Import direction is one way: `logic.js` imports from `validation.js` (`normalizeText`, `toMinutes`), never the reverse.
+**Pure vs. DOM split.** `js/validation.js`, `js/logic.js` and `js/store.js` never touch the DOM, so `tests/tests.js` imports them directly. The views in `js/views/` hold all DOM code. `js/main.js` is the only module with side effects on import (it loads data, builds views and starts the router). Tests must never import it. Put new rules or calculations in the pure modules and test them there. Import direction is one way: `logic.js` → `validation.js` → `store.js` (`logic` uses `normalizeText`, `toMinutes` and the time constants; `validation` uses `SCHEMA_VERSION`). Never import in the other direction. That is why `findConflicts` and `validateImport` live in `validation.js`.
 
 **Data.** Everything is one JSON object under the single key `n4hub.data`: `{ schemaVersion: 1, cards, sessions, quizHistory }`. One key means every save is a single atomic `setItem`. `createStore(backend, { seed, now })` takes the storage object as a parameter, so tests pass an in-memory fake and never touch real localStorage. `load()` and `save()` never throw:
 - Seed (`js/seed.js`, 30 cards) only when the key is **absent**. An empty card list must not reseed.
 - Corrupt JSON, a wrong shape or a wrong `schemaVersion`: copy the raw string to `n4hub.backup.<ISO time>`, start empty, return a warning. Never seed over it.
 
-**App object and views.** `main.js` creates `app = { data, save(), showBanner() }`. Views change `app.data` in place, then call `app.save()`, which shows the banner if the save fails. Each view factory (`createCardsView(app)`, `createReviewView(app)`) returns `{ enter(params), leave() }`. The router calls `enter` with `URLSearchParams` and `leave` on navigation, so views re-render from `app.data` on every `enter`. Register new views in `viewHandlers` in `main.js`.
+**App object and views.** `main.js` creates `app = { data, save(), showBanner() }`. Views change `app.data` in place, then call `app.save()`, which shows the banner if the save fails. Each view factory (`createCardsView`, `createReviewView`, `createTimetableView`, `createDashboardView`, all taking `app`) returns `{ enter(params), leave() }`. Quiz mode (`js/views/quiz.js`) is not a route: `review.js` creates it and switches modes, and `leave()` throws away an unfinished quiz. Import replaces `app.data` as a whole, so views must read `app.data` each time and never cache it. The router calls `enter` with `URLSearchParams` and `leave` on navigation, so views re-render from `app.data` on every `enter`. Register new views in `viewHandlers` in `main.js`.
 
 **Router.** Hashes look like `#view?query`, for example `#review?cat=<encodeURIComponent(category)>`. Only the part before `?` is checked against the `VIEWS` whitelist. Unknown views fall back to `#cards`.
 
@@ -54,6 +54,8 @@ The harness has no CLI filter. To run a subset, filter `runAll()` results by nam
 - The flashcard is a `<button>` with a `click` handler only. Space/Enter already fire `click`, so a keydown handler would flip it twice. When moving to the next card, add `.no-animation` before un-flipping, so the next card's answer is not visible during the rotation.
 - Colors are CSS custom properties in `:root` of `css/style.css` (sky-blue/mint theme). `--danger` is reserved for errors and Delete. Add new colors as tokens, not hard-coded hex values.
 - The card list is paginated (`paginate`, `CARDS_PER_PAGE = 15`). Changing a filter resets to page 1, and adding a card jumps to the page that shows it.
+- A global `[hidden] { display: none !important; }` rule makes the `hidden` attribute work on elements whose class sets `display`. Use `hidden` for show/hide, not CSS classes.
+- Timetable: grid row = `timeSlot(time) + 2` (1 header row, then one row per 15 minutes). The 68 rows are defined twice, in `.timetable-grid` (`repeat(68, …)`) and in `GRID_SLOTS`, so change them together.
 
 ## Git
 

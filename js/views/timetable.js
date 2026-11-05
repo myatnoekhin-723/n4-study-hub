@@ -218,6 +218,10 @@ export function createTimetableView(app) {
 
   return {
     enter() {
+      // The session being edited may be gone (e.g. after an import)
+      if (editingId !== null && !app.data.sessions.some((session) => session.id === editingId)) {
+        resetForm();
+      }
       // Categories may have changed on the Flashcards page. Keep whatever
       // the user already typed in the form.
       renderCategoryOptions(categorySelect.value);
