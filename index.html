@@ -214,7 +214,72 @@
 
     <section id="view-timetable" data-view="timetable" hidden>
       <h2>Timetable</h2>
-      <p class="placeholder">Weekly grid coming on Day 7.</p>
+
+      <form id="session-form" class="form" novalidate>
+        <h3 id="session-form-title">Add a study session</h3>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="session-title">Title</label>
+            <input id="session-title" name="title" autocomplete="off"
+                   placeholder="Kanji drill" aria-describedby="session-title-error">
+            <p id="session-title-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="session-day">Day</label>
+            <select id="session-day" name="day" aria-describedby="session-day-error">
+              <option value="0">Monday</option>
+              <option value="1">Tuesday</option>
+              <option value="2">Wednesday</option>
+              <option value="3">Thursday</option>
+              <option value="4">Friday</option>
+              <option value="5">Saturday</option>
+              <option value="6">Sunday</option>
+            </select>
+            <p id="session-day-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="session-start">Start</label>
+            <input id="session-start" name="start" type="time" step="900" min="06:00" max="22:45"
+                   aria-describedby="session-start-error">
+            <p id="session-start-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="session-end">End</label>
+            <input id="session-end" name="end" type="time" step="900" min="06:15" max="23:00"
+                   aria-describedby="session-end-error">
+            <p id="session-end-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="session-category">Flashcard category</label>
+            <select id="session-category" name="category" aria-describedby="session-category-error"></select>
+            <p id="session-category-error" class="error"></p>
+          </div>
+
+          <div class="field">
+            <label for="session-note">Note (optional)</label>
+            <input id="session-note" name="note" autocomplete="off"
+                   placeholder="Chapter 3" aria-describedby="session-note-error">
+            <p id="session-note-error" class="error"></p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="session-submit" class="button button-primary">Add session</button>
+          <button type="button" id="session-cancel" class="button" hidden>Cancel</button>
+          <button type="button" id="session-delete" class="button button-danger" hidden>Remove</button>
+          <p id="session-form-status" class="form-status" role="status"></p>
+        </div>
+      </form>
+
+      <p class="hint">Click a session to edit or remove it.</p>
+      <div class="timetable-scroll">
+        <div id="timetable-grid" class="timetable-grid" role="group" aria-label="Weekly timetable"></div>
+      </div>
     </section>
 
     <section id="view-dashboard" data-view="dashboard" hidden>

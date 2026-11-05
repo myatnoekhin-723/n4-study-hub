@@ -1,6 +1,6 @@
 // Pure app logic (no DOM), so tests.html can test it.
 
-import { normalizeText } from './validation.js';
+import { normalizeText, toMinutes, DAY_START, DAY_END, SLOT_MINUTES } from './validation.js';
 
 export const STATUS_LABELS = {
   new: 'New',
@@ -135,4 +135,30 @@ export function scoreQuiz(questions, pickedChoices) {
 // Newest first, keeping only the latest QUIZ_HISTORY_LIMIT results.
 export function addQuizResult(history, result) {
   return [result, ...history].slice(0, QUIZ_HISTORY_LIMIT);
+}
+
+// ---------- Timetable ----------
+
+export const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+// Number of 15-minute rows in the grid (06:00–23:00 = 68)
+export const GRID_SLOTS = (DAY_END - DAY_START) / SLOT_MINUTES;
+
+// Weekday index with Monday = 0 ... Sunday = 6 (getDay() has Sunday = 0).
+export function todayIndex(date = new Date()) {
+  return (date.getDay() + 6) % 7;
+}
+
+// "06:00" -> 0, "06:15" -> 1, ... "23:00" -> 68
+export function timeSlot(time) {
+  return (toMinutes(time) - DAY_START) / SLOT_MINUTES;
+}
+
+export function sessionMinutes(session) {
+  return toMinutes(session.end) - toMinutes(session.start);
+}
+
+// By day, then by start time
+export function sortSessions(sessions) {
+  return [...sessions].sort((a, b) => a.day - b.day || toMinutes(a.start) - toMinutes(b.start));
 }

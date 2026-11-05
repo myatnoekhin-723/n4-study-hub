@@ -536,6 +536,106 @@ main {
   font-weight: 600;
 }
 
+/* ---------- Timetable ---------- */
+/* Rows: 1 header row + 68 rows of 15 minutes (06:00–23:00).
+   Columns: hour labels + Mon–Sun. JS places items with grid-row/grid-column. */
+.timetable-scroll {
+  overflow-x: auto;
+}
+
+.timetable-grid {
+  --slot-height: 14px;
+  display: grid;
+  grid-template-columns: 52px repeat(7, minmax(80px, 1fr));
+  grid-template-rows: auto repeat(68, var(--slot-height));
+  min-width: 640px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.tt-day-header {
+  padding: 6px 4px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.tt-day-header.is-today {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* A line at the top of every hour (every 4 rows) */
+.tt-day-column {
+  border-left: 1px solid var(--border);
+  background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 100% calc(var(--slot-height) * 4);
+}
+
+.tt-day-column.is-today {
+  background-color: var(--accent-soft);
+}
+
+.tt-hour {
+  padding-right: 6px;
+  text-align: right;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--muted);
+  transform: translateY(-0.4em);
+}
+
+.tt-session {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  margin: 1px 3px;
+  padding: 2px 6px;
+  overflow: hidden;
+  border: 1px solid var(--mint);
+  border-left: 4px solid var(--mint);
+  border-radius: 6px;
+  background: var(--mint-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tt-session:hover {
+  border-color: var(--accent);
+}
+
+/* Short sessions: title and time on one line, cut off with "…" if too long */
+.tt-session.is-short {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  font-size: 0.7rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tt-session.is-short .tt-session-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tt-session-title {
+  font-weight: 600;
+}
+
+.tt-session-time,
+.tt-session-category {
+  color: var(--muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .flashcard-inner {
     transition: none;

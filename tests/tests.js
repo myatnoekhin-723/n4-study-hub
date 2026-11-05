@@ -23,6 +23,11 @@ import {
   addQuizResult,
   QUIZ_LENGTH,
   QUIZ_HISTORY_LIMIT,
+  todayIndex,
+  timeSlot,
+  sessionMinutes,
+  sortSessions,
+  GRID_SLOTS,
 } from '../js/logic.js';
 import { SEED_CARDS } from '../js/seed.js';
 
@@ -494,4 +499,33 @@ test('addQuizResult keeps the newest QUIZ_HISTORY_LIMIT results, newest first', 
   for (let i = 1; i <= QUIZ_HISTORY_LIMIT + 5; i++) history = addQuizResult(history, { id: String(i) });
   assertEqual(history.length, QUIZ_HISTORY_LIMIT);
   assertEqual(history[0].id, String(QUIZ_HISTORY_LIMIT + 5));
+});
+
+// ---------- logic: timetable ----------
+
+test('todayIndex maps Monday to 0 and Sunday to 6', () => {
+  assertEqual(todayIndex(new Date(2026, 10, 2)), 0); // Mon 2 Nov 2026
+  assertEqual(todayIndex(new Date(2026, 10, 7)), 5); // Sat
+  assertEqual(todayIndex(new Date(2026, 10, 8)), 6); // Sun
+});
+
+test('timeSlot counts 15-minute rows from 06:00', () => {
+  assertEqual(timeSlot('06:00'), 0);
+  assertEqual(timeSlot('06:15'), 1);
+  assertEqual(timeSlot('19:30'), 54);
+  assertEqual(timeSlot('23:00'), GRID_SLOTS);
+  assertEqual(GRID_SLOTS, 68);
+});
+
+test('sessionMinutes gives the length', () => {
+  assertEqual(sessionMinutes({ start: '19:00', end: '20:30' }), 90);
+});
+
+test('sortSessions orders by day then start time', () => {
+  const sorted = sortSessions([
+    { id: 'c', day: 2, start: '08:00' },
+    { id: 'b', day: 0, start: '19:00' },
+    { id: 'a', day: 0, start: '07:00' },
+  ]);
+  assertEqual(sorted.map((s) => s.id), ['a', 'b', 'c']);
 });

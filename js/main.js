@@ -6,6 +6,7 @@ import { createCard } from './logic.js';
 import { SEED_CARDS } from './seed.js';
 import { createCardsView } from './views/cards.js';
 import { createReviewView } from './views/review.js';
+import { createTimetableView } from './views/timetable.js';
 
 const VIEWS = ['cards', 'review', 'timetable', 'dashboard'];
 const DEFAULT_VIEW = 'cards';
@@ -67,6 +68,7 @@ const app = {
 const viewHandlers = {
   cards: createCardsView(app),
   review: createReviewView(app),
+  timetable: createTimetableView(app),
 };
 
 let currentView = null;
